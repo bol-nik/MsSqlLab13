@@ -1,0 +1,62 @@
+1.Написать функцию, которая возвращает количество сотрудников, которые ничего не продавали в феврале 2011 года.
+Create function Sperson_Not_sale()
+returns @table table(sp_id int,sp_name varchar(50))
+as
+begin
+insert @table
+select count(*) from SPERSON s where s.sp_name not in( 
+Select s.sp_name from Sperson s,Sale sa
+where s.sp_id=sa.sp_id and month(sa.data)=2 and year(sa.data)=2011
+group by s.sp_name)
+return
+end
+_______________________________________
+Select * from Sperson_Not_sale()
+
+
+
+2.Написать функцию, которая возвращает самый дорогой товар из таблицы PRODUCT.
+Create function Max_Price_Product()
+returns @table table (p_id int, p_desc varchar(50),m_id int,cost numeric(12,2),
+price numeric(12,2))
+as
+begin
+insert @table
+Select p.p_id, p.p_desc,m_id,cost,price from PRODUCT p 
+where p.price=(Select max(p.price) from PRODUCT p)
+return
+end
+___________________________________
+Select * from Max_Price_Product()
+
+
+3.Создайте последовательный курсор, в котором определяется, сколько свитеров продал каждый сотрудник из Брюсселя с 10 по 20 февраля 2011 года.
+
+Declare MyCursor cursor local fast_forward
+for
+Select sum(qty) from SALE sa, SPERSON s, OFFICE o,Product p
+where sa.sp_id=s.sp_id and s.of_id=o.of_id and sa.p_id=p.p_id and 
+o.office='Bruxelles' 
+and p.p_desc='Sweater' and sa.data between '2011/02/10' and '2011/02/20' 
+open MyCursor
+fetch next from MyCursor 
+close MyCursor
+deallocate MyCursor
+
+
+4.	Создайте локальный динамический курсор с прокруткой, который содержит список клиентов фирмы. С помощью курсора и связанных переменных:
+a)	выведите отдельно последнюю запись;
+b)	выведите отдельно 2-ю запись с начала;
+c)	выведите отдельно 3-ю запись с конца.
+
+Declare CUSTOMER_cursor cursor local scroll
+for
+Select * from CUSTOMER
+order by 1;
+open CUSTOMER_cursor
+fetch last from CUSTOMER_cursor;
+fetch absolute 2 from  CUSTOMER_cursor;
+fetch last from CUSTOMER_cursor;
+fetch relative-3 from CUSTOMER_cursor;
+close CUSTOMER_cursor;
+deallocate CUSTOMER_cursor;
